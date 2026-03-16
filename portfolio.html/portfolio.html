@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arghya Jana — AR/VR & CS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #050810;
+      --surface: #0b0f1a;
+      --border: rgba(255,255,255,0.07);
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --accent: #6ee7f7;
+      --accent2: #a78bfa;
+      --accent3: #34d399;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--bg); color: var(--text); }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 99px; }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; opacity: .45;
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; animation: drift 18s ease-in-out infinite alternate; }
+    .orb-1 { width: 600px; height: 600px; top: -200px; left: -150px; background: radial-gradient(circle, rgba(110,231,247,.18) 0%, transparent 70%); animation-delay: 0s; }
+    .orb-2 { width: 500px; height: 500px; top: 40%; right: -200px; background: radial-gradient(circle, rgba(167,139,250,.15) 0%, transparent 70%); animation-delay: -6s; }
+    .orb-3 { width: 400px; height: 400px; bottom: -100px; left: 30%; background: radial-gradient(circle, rgba(52,211,153,.12) 0%, transparent 70%); animation-delay: -12s; }
+    @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(40px,60px) scale(1.08); } }
+    .glass { background: rgba(255,255,255,0.04); border: 1px solid var(--border); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+    .glass-strong { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); }
+    .grad-text { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .grad-text-2 { background: linear-gradient(135deg, var(--accent2) 0%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: all .4s ease; }
+    nav.scrolled { background: rgba(5,8,16,.85); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); }
+    #hero { min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden; }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(110,231,247,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(110,231,247,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+    }
+    .cursor-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; position: fixed; z-index: 9999; pointer-events: none; transition: transform .1s; mix-blend-mode: screen; }
+    .cursor-ring { width: 36px; height: 36px; border: 1px solid rgba(110,231,247,.5); border-radius: 50%; position: fixed; z-index: 9998; pointer-events: none; transition: transform .18s ease, width .2s, height .2s; mix-blend-mode: screen; }
+    .typewriter { border-right: 2px solid var(--accent); animation: blink .8s step-end infinite; }
+    @keyframes blink { 50% { border-color: transparent; } }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); color: #050810; font-weight: 600; font-family: 'Syne',sans-serif; border-radius: 12px; text-decoration: none; transition: all .3s ease; position: relative; overflow: hidden; }
+    .btn-primary::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.2) 0%, transparent 100%); opacity: 0; transition: opacity .3s; }
+    .btn-primary:hover::before { opacity: 1; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(110,231,247,.25); }
+    .btn-outline { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border: 1px solid rgba(255,255,255,.15); color: var(--text); font-weight: 500; font-family: 'Syne',sans-serif; border-radius: 12px; text-decoration: none; backdrop-filter: blur(10px); transition: all .3s ease; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .skill-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; font-size: 14px; transition: all .3s ease; cursor: default; font-family: 'DM Mono',monospace; }
+    .skill-pill:hover { background: rgba(110,231,247,.08); border-color: rgba(110,231,247,.3); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(110,231,247,.1); }
+    .project-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.07); border-radius: 20px; overflow: hidden; transition: all .4s ease; position: relative; }
+    .project-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(110,231,247,.05), transparent, rgba(167,139,250,.05)); opacity: 0; transition: opacity .4s; }
+    .project-card:hover { transform: translateY(-8px); border-color: rgba(110,231,247,.2); box-shadow: 0 30px 60px rgba(0,0,0,.4); }
+    .project-card:hover::before { opacity: 1; }
+    .project-img { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; overflow: hidden; }
+    .timeline-item { position: relative; padding-left: 36px; }
+    .timeline-item::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent); }
+    .timeline-dot { position: absolute; left: 4px; top: 6px; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 12px var(--accent); }
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: .1s; }
+    .reveal-delay-2 { transition-delay: .2s; }
+    .reveal-delay-3 { transition-delay: .3s; }
+    .reveal-delay-4 { transition-delay: .4s; }
+    .section-label { font-family: 'DM Mono',monospace; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .section-label::before { content: ''; display: block; width: 32px; height: 1px; background: var(--accent); }
+    .grad-line { height: 1px; background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent); }
+    .float-badge { animation: floatY 3s ease-in-out infinite; }
+    @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .contact-link { display: flex; align-items: center; gap: 16px; padding: 20px 24px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; text-decoration: none; color: var(--text); transition: all .3s ease; }
+    .contact-link:hover { background: rgba(110,231,247,.07); border-color: rgba(110,231,247,.25); transform: translateX(6px); }
+    .contact-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+    .tag-chip { font-family: 'DM Mono',monospace; font-size: 11px; padding: 4px 10px; background: rgba(110,231,247,.08); border: 1px solid rgba(110,231,247,.2); color: var(--accent); border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between relative z-10">
+    <a href="#hero" class="font-display font-800 text-xl tracking-tight flex items-center gap-2">
+      <span class="grad-text">AJ</span>
+      <span class="text-white/40 font-mono text-sm">/ arghya</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#about"        class="text-sm text-white/60 hover:text-white transition-colors font-body">About</a>
+      <a href="#skills"       class="text-sm text-white/60 hover:text-white transition-colors font-body">Skills</a>
+      <a href="#projects"     class="text-sm text-white/60 hover:text-white transition-colors font-body">Projects</a>
+      <a href="#achievements" class="text-sm text-white/60 hover:text-white transition-colors font-body">Journey</a>
+      <a href="#contact"      class="btn-primary text-sm py-2.5 px-5">Contact</a>
+    </div>
+    <button id="menuBtn" class="md:hidden text-white/70 hover:text-white p-2">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div id="mobile-menu" class="md:hidden glass-strong border-t border-white/5 px-6 py-5 space-y-4">
+    <a href="#about"        class="block text-white/70 hover:text-white py-2 transition-colors" onclick="closeMobileMenu()">About</a>
+    <a href="#skills"       class="block text-white/70 hover:text-white py-2 transition-colors" onclick="closeMobileMenu()">Skills</a>
+    <a href="#projects"     class="block text-white/70 hover:text-white py-2 transition-colors" onclick="closeMobileMenu()">Projects</a>
+    <a href="#achievements" class="block text-white/70 hover:text-white py-2 transition-colors" onclick="closeMobileMenu()">Journey</a>
+    <a href="#contact"      class="block text-white/70 hover:text-white py-2 transition-colors" onclick="closeMobileMenu()">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="relative z-10">
+  <div class="hero-grid"></div>
+  <div class="absolute top-32 right-10 md:right-24 float-badge hidden md:block">
+    <div class="glass rounded-xl px-4 py-2.5 flex items-center gap-2.5">
+      <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+      <span class="font-mono text-xs text-white/70">IIT Jodhpur</span>
+    </div>
+  </div>
+  <div class="absolute bottom-36 right-12 md:right-32 float-badge hidden md:block" style="animation-delay:1.5s">
+    <div class="glass rounded-xl px-4 py-2.5 flex items-center gap-2.5">
+      <span class="text-sm">🥽</span>
+      <span class="font-mono text-xs text-white/70">M.Tech AR/VR</span>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-32 md:py-40">
+    <div class="reveal flex items-center gap-3 mb-8">
+      <div class="w-8 h-8 rounded-full glass flex items-center justify-center text-sm">👋</div>
+      <span class="font-mono text-xs text-white/50 tracking-widest uppercase">Hello, world</span>
+    </div>
+
+    <h1 class="reveal reveal-delay-1 font-display font-800 leading-none mb-6"
+        style="font-size: clamp(3.2rem, 9vw, 7.5rem); letter-spacing: -0.03em;">
+      Arghya<br/><span class="grad-text">Jana</span>
+    </h1>
+
+    <div class="reveal reveal-delay-2 flex items-center gap-4 mb-6">
+      <div class="w-1 h-10 rounded-full" style="background: linear-gradient(to bottom, var(--accent), var(--accent2));"></div>
+      <div>
+        <p class="font-mono text-sm text-white/40 mb-1">Currently at</p>
+        <p class="font-body text-lg text-white/80">M.Tech AR/VR · <span style="color:var(--accent)">IIT Jodhpur</span></p>
+      </div>
+    </div>
+
+    <p class="reveal reveal-delay-2 font-body text-white/50 text-lg md:text-xl max-w-xl leading-relaxed mb-12">
+      Exploring the intersection of immersive technology, intelligence,<br class="hidden md:block"/> and problem solving.
+    </p>
+
+    <div class="reveal reveal-delay-3 font-mono text-sm text-white/30 mb-12 h-6">
+      <span>I build </span><span id="typed" class="typewriter" style="color:var(--accent)"></span>
+    </div>
+
+    <div class="reveal reveal-delay-4 flex flex-wrap gap-4">
+      <a href="#projects" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12L8 4l6 8H2z" fill="currentColor"/></svg>
+        View Projects
+      </a>
+      <a href="#contact" class="btn-outline">
+        Contact Me
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </a>
+    </div>
+
+    <div class="reveal reveal-delay-4 flex flex-wrap gap-8 mt-20 pt-10 border-t border-white/5">
+      <div>
+        <p class="font-display font-700 text-3xl grad-text">3+</p>
+        <p class="font-mono text-xs text-white/40 mt-1 tracking-wider">Projects Built</p>
+      </div>
+      <div class="w-px bg-white/5"></div>
+      <div>
+        <p class="font-display font-700 text-3xl grad-text-2">GATE</p>
+        <p class="font-mono text-xs text-white/40 mt-1 tracking-wider">CS Qualified</p>
+      </div>
+      <div class="w-px bg-white/5"></div>
+      <div>
+        <p class="font-display font-700 text-3xl" style="color:var(--accent3)">IIT</p>
+        <p class="font-mono text-xs text-white/40 mt-1 tracking-wider">Jodhpur</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/20">
+    <span class="font-mono text-xs tracking-widest">SCROLL</span>
+    <div class="w-px h-10 bg-gradient-to-b from-white/20 to-transparent animate-pulse"></div>
+  </div>
+</section>
+
+<div class="grad-line max-w-7xl mx-auto relative z-10 opacity-40"></div>
+
+<!-- ABOUT -->
+<section id="about" class="relative z-10 py-32">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="section-label reveal">01 — Origin Story</div>
+    <h2 class="reveal reveal-delay-1 font-display font-700 leading-tight mb-4" style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-0.02em;">
+      Physics to<br/><span class="grad-text">Virtual Worlds</span>
+    </h2>
+    <p class="reveal reveal-delay-2 font-body text-white/40 text-lg max-w-2xl mb-20 leading-relaxed">
+      A non-linear journey driven by curiosity, discipline, and a desire to build things that didn't exist yet.
+    </p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      <div class="space-y-8">
+        <div class="timeline-item reveal reveal-delay-1">
+          <div class="timeline-dot"></div>
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">⚛️</span>
+              <div>
+                <p class="font-mono text-xs text-white/30 tracking-wider">CHAPTER 01</p>
+                <p class="font-display font-600 text-lg">Physics Graduate</p>
+              </div>
+            </div>
+            <p class="font-body text-white/60 text-sm leading-relaxed">Started with classical mechanics, quantum theory, and mathematics — building the analytical foundation that would later power algorithmic thinking.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-2">
+          <div class="timeline-dot" style="background:var(--accent2);box-shadow:0 0 12px var(--accent2)"></div>
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">💻</span>
+              <div>
+                <p class="font-mono text-xs text-white/30 tracking-wider">CHAPTER 02</p>
+                <p class="font-display font-600 text-lg">MCA & CS Transition</p>
+              </div>
+            </div>
+            <p class="font-body text-white/60 text-sm leading-relaxed">Pivoted into Computer Science via MCA. Mastered algorithms, data structures, OS, and networks — and discovered a passion for building intelligent systems.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-3">
+          <div class="timeline-dot" style="background:var(--accent3);box-shadow:0 0 12px var(--accent3)"></div>
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">📐</span>
+              <div>
+                <p class="font-mono text-xs text-white/30 tracking-wider">CHAPTER 03</p>
+                <p class="font-display font-600 text-lg">GATE Preparation</p>
+              </div>
+            </div>
+            <p class="font-body text-white/60 text-sm leading-relaxed">Rigorous GATE CS preparation sharpened theoretical CS fundamentals to a competitive national standard — earning a path to India's premier institutes.</p>
+          </div>
+        </div>
+        <div class="timeline-item reveal reveal-delay-4">
+          <div class="timeline-dot" style="background:#f472b6;box-shadow:0 0 12px #f472b6"></div>
+          <div class="glass rounded-2xl p-6" style="border-color:rgba(244,114,182,.2);background:rgba(244,114,182,.04)">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">🥽</span>
+              <div>
+                <p class="font-mono text-xs text-white/30 tracking-wider">CHAPTER 04 — NOW</p>
+                <p class="font-display font-600 text-lg">M.Tech AR/VR · IIT Jodhpur</p>
+              </div>
+            </div>
+            <p class="font-body text-white/60 text-sm leading-relaxed">Researching at the frontier of spatial computing, deep learning, and immersive interfaces — building the next generation of human-computer interaction.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2 lg:sticky lg:top-28">
+        <div class="glass-strong rounded-3xl p-8 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-48 h-48 rounded-full" style="background:radial-gradient(circle,rgba(110,231,247,.12),transparent);transform:translate(30%,-30%)"></div>
+          <div class="w-20 h-20 rounded-2xl mb-6 flex items-center justify-center text-4xl glass">🧑‍💻</div>
+          <h3 class="font-display font-700 text-2xl mb-1">Arghya Jana</h3>
+          <p class="font-mono text-xs mb-6 tracking-wider" style="color:var(--accent)">M.Tech AR/VR · IIT Jodhpur</p>
+          <div class="space-y-4 mb-8">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm flex-shrink-0">📍</div>
+              <span class="font-body text-sm text-white/60">IIT Jodhpur, Rajasthan, India</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm flex-shrink-0">🎓</div>
+              <span class="font-body text-sm text-white/60">M.Tech AR/VR (Ongoing)</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm flex-shrink-0">🔬</div>
+              <span class="font-body text-sm text-white/60">Research: Spatial Computing & AI</span>
+            </div>
+          </div>
+          <div class="grad-line mb-6"></div>
+          <p class="font-body text-white/50 text-sm leading-relaxed">Bridging the physical and digital — I believe immersive technology will reshape how humans perceive, learn, and interact with information.</p>
+          <div class="flex gap-2 mt-6 flex-wrap">
+            <span class="tag-chip">AR/VR</span>
+            <span class="tag-chip">Deep Learning</span>
+            <span class="tag-chip">Cybersecurity</span>
+            <span class="tag-chip">NLP</span>
+            <span class="tag-chip">Graph Theory</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="relative z-10 py-32">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="section-label reveal">02 — Toolset</div>
+    <h2 class="reveal reveal-delay-1 font-display font-700 leading-tight mb-4" style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-0.02em;">
+      Skills &<br/><span class="grad-text-2">Technologies</span>
+    </h2>
+    <p class="reveal reveal-delay-2 font-body text-white/40 text-lg max-w-xl mb-16 leading-relaxed">A focused stack for systems thinking, intelligent applications, and immersive experiences.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="reveal reveal-delay-1 glass rounded-2xl p-7">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(110,231,247,.12)">⌨️</div>
+          <div>
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase">Category 01</p>
+            <p class="font-display font-600 text-base">Programming</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <div class="skill-pill">🐍 Python</div>
+          <div class="skill-pill">⚙️ C</div>
+          <div class="skill-pill">🗄️ SQL</div>
+          <div class="skill-pill">📊 Pandas</div>
+          <div class="skill-pill">🔢 NumPy</div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2 glass rounded-2xl p-7">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(167,139,250,.12)">🧠</div>
+          <div>
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase">Category 02</p>
+            <p class="font-display font-600 text-base">CS Fundamentals</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <div class="skill-pill">🌳 Data Structures</div>
+          <div class="skill-pill">⚡ Algorithms</div>
+          <div class="skill-pill">🖥️ Operating Systems</div>
+          <div class="skill-pill">🌐 Networks</div>
+          <div class="skill-pill">📐 Graph Theory</div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-3 glass rounded-2xl p-7">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(52,211,153,.12)">🔭</div>
+          <div>
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase">Category 03</p>
+            <p class="font-display font-600 text-base">Technologies</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <div class="skill-pill">🥽 AR/VR</div>
+          <div class="skill-pill">🤖 ML / Deep Learning</div>
+          <div class="skill-pill">🔐 Cybersecurity</div>
+          <div class="skill-pill">🐧 Linux</div>
+          <div class="skill-pill">🔗 NetworkX</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal reveal-delay-4 mt-6 glass rounded-2xl p-7">
+      <p class="font-mono text-xs text-white/30 tracking-wider uppercase mb-5">Research & Specialisations</p>
+      <div class="flex flex-wrap gap-3">
+        <div class="skill-pill">🤗 BERT / Transformers</div>
+        <div class="skill-pill">📝 spaCy · NLTK</div>
+        <div class="skill-pill">🔊 WordNet</div>
+        <div class="skill-pill">📡 Louvain Community Detection</div>
+        <div class="skill-pill">🌊 Independent Cascade Model</div>
+        <div class="skill-pill">📈 PageRank</div>
+        <div class="skill-pill">☁️ Streamlit Cloud</div>
+        <div class="skill-pill">🔑 OAuth2</div>
+        <div class="skill-pill">📲 WhatsApp API</div>
+        <div class="skill-pill">💳 UPI Payments</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" class="relative z-10 py-32">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="section-label reveal">03 — Work</div>
+    <h2 class="reveal reveal-delay-1 font-display font-700 leading-tight mb-4" style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-0.02em;">
+      Featured<br/><span class="grad-text">Projects</span>
+    </h2>
+    <p class="reveal reveal-delay-2 font-body text-white/40 text-lg max-w-xl mb-16 leading-relaxed">Real code. Real data. Real impact.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- MCQ NLP -->
+      <div class="project-card reveal reveal-delay-1 flex flex-col">
+        <div class="project-img" style="background:linear-gradient(135deg,#0f1923,#1a0f23)">
+          <div class="text-center relative z-10">
+            <div class="text-5xl mb-2">📝</div>
+            <div class="font-mono text-xs text-white/20 tracking-widest">NLP PIPELINE</div>
+          </div>
+          <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 50% 50%,rgba(110,231,247,.3),transparent 60%)"></div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="font-display font-600 text-lg leading-snug">MCQ Generation<br/>from Text — NLP</h3>
+            <span class="font-mono text-xs text-white/30">Aug 2023</span>
+          </div>
+          <p class="font-body text-sm text-white/50 leading-relaxed mb-5 flex-1">
+            Automated MCQ generation pipeline using spaCy keyword extraction, BERT embeddings for distractor generation via WordNet, and semantic similarity evaluation. Produces grammatically verified questions from raw text.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-5">
+            <span class="tag-chip">Python</span>
+            <span class="tag-chip">spaCy</span>
+            <span class="tag-chip">BERT</span>
+            <span class="tag-chip">NLTK</span>
+            <span class="tag-chip">WordNet</span>
+          </div>
+          <a href="#" class="btn-outline text-sm py-2.5 justify-center" style="font-size:13px">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C4 1.5 1.5 4 1.5 7c0 2.43 1.57 4.5 3.75 5.23.27.05.37-.12.37-.26v-.94C3.88 11.5 3.56 10.3 3.56 10.3c-.25-.63-.61-.8-.61-.8-.5-.34.04-.33.04-.33.55.04.84.57.84.57.49.84 1.28.6 1.6.46.05-.35.19-.6.35-.74-1.22-.14-2.5-.61-2.5-2.72 0-.6.21-1.09.57-1.48-.06-.14-.25-.7.05-1.46 0 0 .47-.15 1.52.57A5.3 5.3 0 0 1 7 3.96c.47 0 .94.06 1.38.18 1.05-.72 1.52-.57 1.52-.57.3.76.11 1.32.05 1.46.36.39.57.88.57 1.48 0 2.12-1.28 2.58-2.51 2.72.2.17.37.51.37 1.03v1.52c0 .15.1.31.38.26A5.51 5.51 0 0 0 12.5 7C12.5 4 10 1.5 7 1.5z" fill="currentColor"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- Social Network -->
+      <div class="project-card reveal reveal-delay-2 flex flex-col">
+        <div class="project-img" style="background:linear-gradient(135deg,#0f1a12,#101523)">
+          <div class="text-center relative z-10">
+            <div class="text-5xl mb-2">🕸️</div>
+            <div class="font-mono text-xs text-white/20 tracking-widest">GRAPH ANALYSIS</div>
+          </div>
+          <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 50% 50%,rgba(52,211,153,.3),transparent 60%)"></div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="font-display font-600 text-lg leading-snug">Influential Nodes<br/>in Social Networks</h3>
+            <span class="font-mono text-xs text-white/30">Sep 2024</span>
+          </div>
+          <p class="font-body text-sm text-white/50 leading-relaxed mb-5 flex-1">
+            Community-based influence maximization using Louvain detection + PageRank. Nodes classified as Leading/Observing/Following. Evaluated via Independent Cascade Model on Facebook, GR-QC, and US Power Grid datasets.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-5">
+            <span class="tag-chip">Python</span>
+            <span class="tag-chip">NetworkX</span>
+            <span class="tag-chip">Louvain</span>
+            <span class="tag-chip">PageRank</span>
+            <span class="tag-chip">ICM</span>
+          </div>
+          <a href="#" class="btn-outline text-sm py-2.5 justify-center" style="font-size:13px">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C4 1.5 1.5 4 1.5 7c0 2.43 1.57 4.5 3.75 5.23.27.05.37-.12.37-.26v-.94C3.88 11.5 3.56 10.3 3.56 10.3c-.25-.63-.61-.8-.61-.8-.5-.34.04-.33.04-.33.55.04.84.57.84.57.49.84 1.28.6 1.6.46.05-.35.19-.6.35-.74-1.22-.14-2.5-.61-2.5-2.72 0-.6.21-1.09.57-1.48-.06-.14-.25-.7.05-1.46 0 0 .47-.15 1.52.57A5.3 5.3 0 0 1 7 3.96c.47 0 .94.06 1.38.18 1.05-.72 1.52-.57 1.52-.57.3.76.11 1.32.05 1.46.36.39.57.88.57 1.48 0 2.12-1.28 2.58-2.51 2.72.2.17.37.51.37 1.03v1.52c0 .15.1.31.38.26A5.51 5.51 0 0 0 12.5 7C12.5 4 10 1.5 7 1.5z" fill="currentColor"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- ERP System -->
+      <div class="project-card reveal reveal-delay-3 flex flex-col" style="border-color:rgba(167,139,250,.15);background:rgba(167,139,250,.03)">
+        <div class="project-img" style="background:linear-gradient(135deg,#130f23,#0f1520)">
+          <div class="text-center relative z-10">
+            <div class="text-5xl mb-2">🏫</div>
+            <div class="font-mono text-xs text-white/20 tracking-widest">CLOUD ERP</div>
+          </div>
+          <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 50% 50%,rgba(167,139,250,.35),transparent 60%)"></div>
+          <div class="absolute top-3 right-3">
+            <span class="font-mono text-xs px-2 py-1 rounded-full" style="background:rgba(52,211,153,.15);color:var(--accent3);border:1px solid rgba(52,211,153,.25)">LIVE</span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="font-display font-600 text-lg leading-snug">Coaching Centre<br/>Cloud ERP</h3>
+            <span class="font-mono text-xs text-white/30">Jan 2026</span>
+          </div>
+          <p class="font-body text-sm text-white/50 leading-relaxed mb-5 flex-1">
+            Full-stack cloud ERP for 200+ active users. Multi-investor dashboard with automated profit distribution, real-time analytics, UPI payments, WhatsApp notifications, and Google Sheets as cloud DB.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mb-5">
+            <span class="tag-chip">Python</span>
+            <span class="tag-chip">Streamlit</span>
+            <span class="tag-chip">Sheets API</span>
+            <span class="tag-chip">SQLite</span>
+            <span class="tag-chip">OAuth2</span>
+            <span class="tag-chip">UPI</span>
+          </div>
+          <a href="#" class="btn-outline text-sm py-2.5 justify-center" style="font-size:13px">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C4 1.5 1.5 4 1.5 7c0 2.43 1.57 4.5 3.75 5.23.27.05.37-.12.37-.26v-.94C3.88 11.5 3.56 10.3 3.56 10.3c-.25-.63-.61-.8-.61-.8-.5-.34.04-.33.04-.33.55.04.84.57.84.57.49.84 1.28.6 1.6.46.05-.35.19-.6.35-.74-1.22-.14-2.5-.61-2.5-2.72 0-.6.21-1.09.57-1.48-.06-.14-.25-.7.05-1.46 0 0 .47-.15 1.52.57A5.3 5.3 0 0 1 7 3.96c.47 0 .94.06 1.38.18 1.05-.72 1.52-.57 1.52-.57.3.76.11 1.32.05 1.46.36.39.57.88.57 1.48 0 2.12-1.28 2.58-2.51 2.72.2.17.37.51.37 1.03v1.52c0 .15.1.31.38.26A5.51 5.51 0 0 0 12.5 7C12.5 4 10 1.5 7 1.5z" fill="currentColor"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ACHIEVEMENTS -->
+<section id="achievements" class="relative z-10 py-32">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="section-label reveal">04 — Milestones</div>
+    <h2 class="reveal reveal-delay-1 font-display font-700 leading-tight mb-4" style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-0.02em;">
+      The<br/><span class="grad-text">Journey</span>
+    </h2>
+    <p class="reveal reveal-delay-2 font-body text-white/40 text-lg max-w-xl mb-16 leading-relaxed">Key milestones that define the path from curiosity to expertise.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <div class="reveal reveal-delay-1 glass rounded-2xl p-8 group relative overflow-hidden">
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background:linear-gradient(135deg,rgba(110,231,247,.04),transparent)"></div>
+        <div class="text-4xl mb-4">🎓</div>
+        <h3 class="font-display font-600 text-xl mb-2">IIT Jodhpur — M.Tech</h3>
+        <p class="font-mono text-xs mb-4 tracking-wider" style="color:var(--accent)">AUGMENTED & VIRTUAL REALITY</p>
+        <p class="font-body text-white/50 text-sm leading-relaxed">Secured admission to IIT Jodhpur for a specialized M.Tech in AR/VR — a program at the frontier of spatial computing, immersive interfaces, and human-computer interaction research.</p>
+        <div class="mt-6 pt-6 border-t border-white/5 flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span class="font-mono text-xs text-white/30">Currently Enrolled</span>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2 glass rounded-2xl p-8 group relative overflow-hidden">
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background:linear-gradient(135deg,rgba(167,139,250,.04),transparent)"></div>
+        <div class="text-4xl mb-4">📐</div>
+        <h3 class="font-display font-600 text-xl mb-2">GATE CS — Qualified</h3>
+        <p class="font-mono text-xs mb-4 tracking-wider" style="color:var(--accent2)">GRADUATE APTITUDE TEST IN ENGINEERING</p>
+        <p class="font-body text-white/50 text-sm leading-relaxed">Cleared the highly competitive GATE Computer Science examination — mastering algorithms, OS, networks, DBMS, and discrete math to a national competitive standard.</p>
+        <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-2">
+          <span class="tag-chip">Algorithms</span><span class="tag-chip">DBMS</span><span class="tag-chip">OS</span><span class="tag-chip">CN</span>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-3 glass rounded-2xl p-8 group relative overflow-hidden">
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background:linear-gradient(135deg,rgba(52,211,153,.04),transparent)"></div>
+        <div class="text-4xl mb-4">⚛️</div>
+        <h3 class="font-display font-600 text-xl mb-2">Physics → CS Pivot</h3>
+        <p class="font-mono text-xs mb-4 tracking-wider" style="color:var(--accent3)">INTERDISCIPLINARY MASTERY</p>
+        <p class="font-body text-white/50 text-sm leading-relaxed">Completed B.Sc Physics before pivoting into CS via MCA — proving that mathematical and analytical foundations from Physics transfer directly into algorithm design and CS research.</p>
+      </div>
+
+      <div class="reveal reveal-delay-4 glass rounded-2xl p-8 group relative overflow-hidden">
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="background:linear-gradient(135deg,rgba(244,114,182,.04),transparent)"></div>
+        <div class="text-4xl mb-4">🏗️</div>
+        <h3 class="font-display font-600 text-xl mb-2">200+ User Production App</h3>
+        <p class="font-mono text-xs mb-4 tracking-wider" style="color:#f472b6">REAL-WORLD CLOUD DEPLOYMENT</p>
+        <p class="font-body text-white/50 text-sm leading-relaxed">Built and deployed a cloud ERP serving 200+ active users with real financial transactions, investor dashboards, WhatsApp automation, and OAuth-secured access control.</p>
+        <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-2">
+          <span class="tag-chip">200+ users</span><span class="tag-chip">Cloud</span><span class="tag-chip">95%+ uptime</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="relative z-10 py-32">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="section-label reveal" style="justify-content:center">05 — Let's Connect</div>
+    <h2 class="reveal reveal-delay-1 font-display font-700 leading-tight mb-6" style="font-size:clamp(2.5rem,6vw,4rem);letter-spacing:-0.02em;">
+      Say <span class="grad-text">Hello</span>
+    </h2>
+    <p class="reveal reveal-delay-2 font-body text-white/40 text-lg max-w-lg mx-auto mb-16 leading-relaxed">
+      Research collaboration, project ideas, or just a good tech conversation — I'm always open.
+    </p>
+
+    <div class="reveal reveal-delay-3 glass-strong rounded-3xl p-8 md:p-10 max-w-2xl mx-auto">
+      <div class="space-y-4">
+        <a href="mailto:arghya@iitj.ac.in" class="contact-link">
+          <div class="contact-icon" style="background:rgba(110,231,247,.1)">📧</div>
+          <div class="text-left">
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase mb-1">Email</p>
+            <p class="font-body text-sm text-white/80">arghya@iitj.ac.in</p>
+          </div>
+          <svg class="ml-auto text-white/20" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+        <a href="https://linkedin.com/in/arghyajana" target="_blank" class="contact-link">
+          <div class="contact-icon" style="background:rgba(14,118,168,.15)">💼</div>
+          <div class="text-left">
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase mb-1">LinkedIn</p>
+            <p class="font-body text-sm text-white/80">linkedin.com/in/arghyajana</p>
+          </div>
+          <svg class="ml-auto text-white/20" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+        <a href="https://github.com/arghyajana" target="_blank" class="contact-link">
+          <div class="contact-icon" style="background:rgba(255,255,255,.07)">🐙</div>
+          <div class="text-left">
+            <p class="font-mono text-xs text-white/30 tracking-wider uppercase mb-1">GitHub</p>
+            <p class="font-body text-sm text-white/80">github.com/arghyajana</p>
+          </div>
+          <svg class="ml-auto text-white/20" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+      <div class="grad-line my-8"></div>
+      <p class="font-mono text-xs text-white/30 tracking-wider">Based in IIT Jodhpur · Open to research collaboration</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="relative z-10 border-t border-white/5 py-10">
+  <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <span class="font-display font-700 text-lg grad-text">AJ</span>
+      <span class="font-mono text-xs text-white/20">© 2025 Arghya Jana</span>
+    </div>
+    <p class="font-mono text-xs text-white/20 text-center">Built with HTML · Tailwind CSS · Vanilla JS</p>
+    <a href="#hero" class="font-mono text-xs text-white/30 hover:text-white transition-colors">↑ Back to Top</a>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; dot.style.left=mx-4+'px'; dot.style.top=my-4+'px'; });
+  function animateRing(){ rx+=(mx-rx-18)*.12; ry+=(my-ry-18)*.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animateRing); }
+  animateRing();
+  document.querySelectorAll('a,button,.skill-pill,.project-card').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{ ring.style.width='56px'; ring.style.height='56px'; ring.style.borderColor='rgba(110,231,247,.8)'; });
+    el.addEventListener('mouseleave',()=>{ ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(110,231,247,.5)'; });
+  });
+
+  // Navbar scroll
+  const navbar=document.getElementById('navbar');
+  window.addEventListener('scroll',()=>{ navbar.classList.toggle('scrolled',window.scrollY>50); });
+
+  // Mobile menu
+  document.getElementById('menuBtn').addEventListener('click',()=>{ document.getElementById('mobile-menu').classList.toggle('open'); });
+  function closeMobileMenu(){ document.getElementById('mobile-menu').classList.remove('open'); }
+
+  // Reveal on scroll
+  const obs=new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } }); },{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  // Typewriter
+  const roles=['AR/VR experiences.','intelligent pipelines.','graph algorithms.','cloud applications.','the future of the web.'];
+  let ri=0,ci=0,deleting=false;
+  const typedEl=document.getElementById('typed');
+  function typeLoop(){
+    const word=roles[ri];
+    if(!deleting){ typedEl.textContent=word.slice(0,++ci); if(ci===word.length){ deleting=true; setTimeout(typeLoop,1800); return; } }
+    else{ typedEl.textContent=word.slice(0,--ci); if(ci===0){ deleting=false; ri=(ri+1)%roles.length; } }
+    setTimeout(typeLoop,deleting?40:75);
+  }
+  setTimeout(typeLoop,1000);
+
+  // Hero mouse parallax
+  document.getElementById('hero').addEventListener('mousemove',e=>{
+    const cx=window.innerWidth/2,cy=window.innerHeight/2;
+    const dx=(e.clientX-cx)/cx*12,dy=(e.clientY-cy)/cy*12;
+    document.querySelectorAll('.float-badge').forEach((b,i)=>{
+      b.style.transform=`translate(${dx*(i+1)*.3}px,${dy*(i+1)*.3}px)`;
+    });
+  });
+</script>
+</body>
+</html>
